@@ -486,13 +486,11 @@ public final int getAndAddInt(Object paramObject, long paramLong, int paramInt) 
 
 刚开始判断是否有锁，锁支持偏向锁，获取到锁资源的线程会优先让它再去获取这个锁，如果没有获取到这个锁就升级成轻量级锁（CAS、乐观锁），如果CAS没有设置成功会进行自旋，自旋到一定次数会升级成synchronized重量级锁。
 
-### synchronized和volatile
+### synchronized
 
  **synchronized**（JVM中实现）是怎么做到的，synchronized 先锁住 共享的内存变量，然后线程A修改完之后将值返回到主内存，然后线程B获得锁以后才能获取值，所以通过代码层面的锁可以解决这个线程之间通信的 可见性问题。 
 
  对于声明了 volatile 的变量，进行写操作的时候， JVM 会向 处理器发送一条 lock 的前缀指令。 
-
-
 
 #### 如何实现synchronized
 
@@ -516,13 +514,7 @@ monitor存在于对象头中。
 
 
 
-**volatile**写操作时，将这个变量在自己工作内存中的值，写回到主内存，
 
- 每个处理器会 嗅探到 总线上的所传播的数据来检测自己缓存中的值是不是过期了，  处理器的缓存对应的内存地址被修改以后，它就会将当前的处理器缓存的值设置为失效状态，然后去读那个最新的值。 
-
-
-
- 当对volatile标记的变量进行修改时，会将其他缓存中存储的修改前的变量清除，然后重新读取。一般来说应该是先在进行修改的缓存A中修改为新值，然后通知其他缓存清除掉此变量，当其他缓存B中的线程读取此变量时，会向总线发送消息，这时存储新值的缓存A获取到消息，将新值穿给B。最后将新值写入内存。当变量需要更新时都是此步骤，volatile的作用是被其修饰的变量，每次更新时，都会刷新上述步骤 
 
  volatile可以修饰变量，共享变量 。
 
@@ -536,9 +528,622 @@ synchronized
 
   4.修饰一个静态的方法
 
-#### 锁膨胀、锁释放
 
 
+### **volatile**
+
+它是轻量级的同步机制：
+
+​	保证可见性、不保证原子性、禁止指令重排
+
+#### JMM Java Memory Model
+
+​	1.什么是JMM？
+
+​	JMM是Java内存模型，也就是Java Memory Model，简称JMM，本身是一种抽象的概念，实际上并不存在，它描述的是一组规则或规范，通过这组规范定义了程序中各个变量（包括实例字段，静态字段和构成数组对象的元素）的访问方式
+
+JMM关于同步的规定：
+
+- 线程解锁前，必须把共享变量的值刷新回主内存
+- 线程解锁前，必须读取主内存的最新值，到自己的工作内存
+- 加锁和解锁是同一把锁
+
+**volatile**写操作时，将这个变量在自己工作内存中的值，写回到主内存，
+
+ 当对volatile标记的变量进行修改时，会将其他缓存中存储的修改前的变量清除，然后重新读取。一般来说应该是先在进行修改的缓存A中修改为新值，然后通知其他缓存清除掉此变量，当其他缓存B中的线程读取此变量时，会向总线发送消息，这时存储新值的缓存A获取到消息，将新值穿给B。最后将新值写入内存。当变量需要更新时都是此步骤，volatile的作用是被其修饰的变量，每次更新时，都会刷新上述步骤 
+
+
+
+由于JVM运行程序的实体是线程，而每个线程创建时JVM都会为其创建一个工作内存（有些地方称为栈空间），工作内存是每个线程的私有数据区域，而Java内存模型中规定所有变量都存储在主内存，主内存是共享内存区域，所有线程都可以访问，`但线程对变量的操作（读取赋值等）必须在工作内存中进行，首先要将变量从主内存拷贝到自己的工作内存空间，然后对变量进行操作，操作完成后再将变量写会主内存`，不能直接操作主内存中的变量，各个线程中的工作内存中存储着主内存中的变量副本拷贝，因此不同的线程间无法访问对方的工作内存，线程间的通信（传值）必须通过主内存来完成，其简要访问过程：
+
+![image-20200309153225758](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/1_Volatile%E5%92%8CJMM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/images/image-20200309153225758.png)
+
+![image-20200309154435933](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/1_Volatile%E5%92%8CJMM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/images/image-20200309154435933.png)
+
+即：JMM内存模型的可见性，指的是当主内存区域中的值被某个线程写入更改后，其它线程会马上知晓更改后的值，并重新得到更改后的值。
+
+####  缓存一致性，总线嗅探技术
+
+ 每个处理器会 嗅探到 总线上的所传播的数据来检测自己缓存中的值是不是过期了，  处理器的缓存对应的内存地址被修改以后，它就会将当前的处理器缓存的值设置为失效状态，然后去读那个最新的值。 
+
+
+
+为什么这里主线程中某个值被更改后，其它线程能马上知晓呢？其实这里是用到了总线嗅探技术
+
+在说嗅探技术之前，首先谈谈缓存一致性的问题，就是当多个处理器运算任务都涉及到同一块主内存区域的时候，将可能导致各自的缓存数据不一。
+
+为了解决缓存一致性的问题，需要各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，这类协议主要有MSI、MESI等等。
+
+**MESI**
+
+当CPU写数据时，如果发现操作的变量是共享变量，即在其它CPU中也存在该变量的副本，会发出信号通知其它CPU将该内存变量的缓存行设置为无效，因此当其它CPU读取这个变量的时，发现自己缓存该变量的缓存行是无效的，那么它就会从内存中重新读取。
+
+**总线嗅探**
+
+那么是如何发现数据是否失效呢？
+
+这里是用到了总线嗅探技术，就是每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期了，当处理器发现自己的缓存行对应的内存地址被修改，就会将当前处理器的缓存行设置为无效状态，当处理器对这个数据进行修改操作的时候，会重新从内存中把数据读取到处理器缓存中。
+
+**总线风暴**
+
+总线嗅探技术有哪些缺点？
+
+由于Volatile的MESI缓存一致性协议，需要不断的从主内存嗅探和CAS循环，无效的交互会导致总线带宽达到峰值。因此不要大量使用volatile关键字，至于什么时候使用volatile、什么时候用锁以及Syschonized都是需要根据实际场景的。
+
+
+
+JMM的三大特性，volatile只保证了两个，即可见性和有序性，不满足原子性
+
+- 可见性
+- 原子性
+- 有序性
+
+#### 可见性代码验证
+
+```
+/**
+ * Volatile Java虚拟机提供的轻量级同步机制
+ *
+ * 可见性（及时通知）
+ * 不保证原子性
+ * 禁止指令重排
+ *
+ * @author: 陌溪
+ * @create: 2020-03-09-15:58
+ */
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 假设是主物理内存
+ */
+class MyData {
+
+    int number = 0;
+
+    public void addTo60() {
+        this.number = 60;
+    }
+}
+
+/**
+ * 验证volatile的可见性
+ * 1. 假设int number = 0， number变量之前没有添加volatile关键字修饰
+ */
+public class VolatileDemo {
+
+    public static void main(String args []) {
+
+        // 资源类
+        MyData myData = new MyData();
+
+        // AAA线程 实现了Runnable接口的，lambda表达式
+        new Thread(() -> {
+
+            System.out.println(Thread.currentThread().getName() + "\t come in");
+
+            // 线程睡眠3秒，假设在进行运算
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // 修改number的值
+            myData.addTo60();
+
+            // 输出修改后的值
+            System.out.println(Thread.currentThread().getName() + "\t update number value:" + myData.number);
+
+        }, "AAA").start();
+
+        while(myData.number == 0) {
+            // main线程就一直在这里等待循环，直到number的值不等于零
+        }
+
+        // 按道理这个值是不可能打印出来的，因为主线程运行的时候，number的值为0，所以一直在循环
+        // 如果能输出这句话，说明AAA线程在睡眠3秒后，更新的number的值，重新写入到主内存，并被main线程感知到了
+        System.out.println(Thread.currentThread().getName() + "\t mission is over");
+
+        /**
+         * 最后输出结果：
+         * AAA	 come in
+         * AAA	 update number value:60
+         * 最后线程没有停止，并行没有输出  mission is over 这句话，说明没有用volatile修饰的变量，是没有可见性
+         */
+
+    }
+}
+```
+
+最后线程没有停止，并行没有输出 mission is over 这句话，说明没有用volatile修饰的变量，是没有可见性
+
+当我们修改MyData类中的成员变量时，并且添加volatile关键字修饰
+
+```
+class MyData {
+    /**
+     * volatile 修饰的关键字，是为了增加 主线程和线程之间的可见性，只要有一个线程修改了内存中的值，其它线程也能马上感知
+     */
+    volatile int number = 0;
+
+    public void addTo60() {
+        this.number = 60;
+    }
+}
+```
+
+主线程也执行完毕了，说明volatile修饰的变量，是具备JVM轻量级同步机制的，能够感知其它线程的修改后的值。
+
+#### 不保证原子性
+
+通过前面对JMM的介绍，我们知道，各个线程对主内存中共享变量的操作都是各个线程各自拷贝到自己的工作内存进行操作后在写回到主内存中的。
+
+这就可能存在一个线程AAA修改了共享变量X的值，但是还未写入主内存时，另外一个线程BBB又对主内存中同一共享变量X进行操作，但此时A线程工作内存中共享变量X对线程B来说是不可见，这种工作内存与主内存同步延迟现象就造成了可见性问题。
+
+##### 原子性
+
+不可分割，完整性，也就是说某个线程正在做某个具体业务时，中间不可以被加塞或者被分割，需要具体完成，要么同时成功，要么同时失败。
+
+数据库也经常提到事务具备原子性
+
+##### 代码测试
+
+为了测试volatile是否保证原子性，我们创建了20个线程，然后每个线程分别循环1000次，来调用number++的方法
+
+```
+        MyData myData = new MyData();
+
+        // 创建10个线程，线程里面进行1000次循环
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                // 里面
+                for (int j = 0; j < 1000; j++) {
+                    myData.addPlusPlus();
+                }
+            }, String.valueOf(i)).start();
+        }
+```
+
+最后通过 Thread.activeCount()，来感知20个线程是否执行完毕，这里判断线程数是否大于2，为什么是2？因为默认是有两个线程的，一个main线程，一个gc线程
+
+```
+// 需要等待上面20个线程都计算完成后，在用main线程取得最终的结果值
+while(Thread.activeCount() > 2) {
+    // yield表示不执行
+    Thread.yield();
+}
+```
+
+然后在线程执行完毕后，我们在查看number的值，假设volatile保证原子性的话，那么最后输出的值应该是
+
+20 * 1000 = 20000,
+
+完整代码如下所示：
+
+```
+/**
+ * Volatile Java虚拟机提供的轻量级同步机制
+ *
+ * 可见性（及时通知）
+ * 不保证原子性
+ * 禁止指令重排
+ *
+ * @author: 陌溪
+ * @create: 2020-03-09-15:58
+ */
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 假设是主物理内存
+ */
+class MyData {
+    /**
+     * volatile 修饰的关键字，是为了增加 主线程和线程之间的可见性，只要有一个线程修改了内存中的值，其它线程也能马上感知
+     */
+    volatile int number = 0;
+
+    public void addTo60() {
+        this.number = 60;
+    }
+
+    /**
+     * 注意，此时number 前面是加了volatile修饰
+     */
+    public void addPlusPlus() {
+        number ++;
+    }
+}
+
+/**
+ * 验证volatile的可见性
+ * 1、 假设int number = 0， number变量之前没有添加volatile关键字修饰
+ * 2、添加了volatile，可以解决可见性问题
+ *
+ * 验证volatile不保证原子性
+ * 1、原子性指的是什么意思？
+ */
+public class VolatileDemo {
+
+    public static void main(String args []) {
+
+        MyData myData = new MyData();
+
+        // 创建20个线程，线程里面进行1000次循环
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                // 里面
+                for (int j = 0; j < 1000; j++) {
+                    myData.addPlusPlus();
+                }
+            }, String.valueOf(i)).start();
+        }
+
+        // 需要等待上面20个线程都计算完成后，在用main线程取得最终的结果值
+        // 这里判断线程数是否大于2，为什么是2？因为默认是有两个线程的，一个main线程，一个gc线程
+        while(Thread.activeCount() > 2) {
+            // yield表示不执行
+            Thread.yield();
+        }
+
+        // 查看最终的值
+        // 假设volatile保证原子性，那么输出的值应该为：  20 * 1000 = 20000
+        System.out.println(Thread.currentThread().getName() + "\t finally number value: " + myData.number);
+
+    }
+}
+```
+
+最终结果我们会发现，number输出的值并没有20000，而且是每次运行的结果都不一致的，这说明了volatile修饰的变量不保证原子性
+
+第一次：
+
+![image-20200309172900462](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/2_Volatile%E4%B8%8D%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7/images/image-20200309172900462.png)
+
+第二次：
+
+![image-20200309172919295](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/2_Volatile%E4%B8%8D%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7/images/image-20200309172919295.png)
+
+第三次：
+
+![image-20200309172929820](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/2_Volatile%E4%B8%8D%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7/images/image-20200309172929820.png)
+
+
+
+##### 为什么出现数值丢失
+
+![image-20200309174220675](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/1_%E8%B0%88%E8%B0%88Volatile/2_Volatile%E4%B8%8D%E4%BF%9D%E8%AF%81%E5%8E%9F%E5%AD%90%E6%80%A7/images/image-20200309174220675.png)
+
+##### 如何解决
+
+- 在方法上加入 synchronized
+
+```
+    public synchronized void addPlusPlus() {
+        number ++;
+    }
+```
+
+除了引用synchronized关键字外，还可以使用JUC下面的原子包装类，即刚刚的int类型的number，可以使用AtomicInteger来代替
+
+```
+    /**
+     *  创建一个原子Integer包装类，默认为0
+      */
+    AtomicInteger atomicInteger = new AtomicInteger();
+
+    public void addAtomic() {
+        // 相当于 atomicInter ++
+        atomicInteger.getAndIncrement();
+    }
+```
+
+#### 禁止指令重排
+
+计算机在执行程序时，为了提高性能，编译器和处理器常常会对指令重排，一般分为以下三种：
+
+```
+源代码 -> 编译器优化的重排 -> 指令并行的重排 -> 内存系统的重排 -> 最终执行指令
+```
+
+单线程环境里面确保最终执行结果和代码顺序的结果一致
+
+处理器在进行重排序时，必须要考虑指令之间的`数据依赖性`
+
+多线程环境中线程交替执行，由于编译器优化重排的存在，两个线程中使用的变量能否保证一致性是无法确定的，结果无法预测。
+
+#####  例子1
+
+int a,b,x,y = 0
+
+| 线程1        | 线程2  |
+| ------------ | ------ |
+| x = a;       | y = b; |
+| b = 1;       | a = 2; |
+|              |        |
+| x = 0; y = 0 |        |
+
+因为上面的代码，不存在数据的依赖性，因此编译器可能对数据进行重排
+
+| 线程1        | 线程2  |
+| ------------ | ------ |
+| b = 1;       | a = 2; |
+| x = a;       | y = b; |
+|              |        |
+| x = 2; y = 1 |        |
+
+这样造成的结果，和最开始的就不一致了，这就是导致重排后，结果和最开始的不一样，因此为了防止这种结果出现，volatile就规定禁止指令重排，为了保证数据的一致性
+
+
+
+##### 例子2
+
+比如下面这段代码
+
+```java
+public class ResortSeqDemo {
+    int a= 0;
+    boolean flag = false;
+
+    public void method01() {
+        a = 1;
+        flag = true;
+    }
+
+    public void method02() {
+        if(flag) {
+            a = a + 5;
+            System.out.println("reValue:" + a);
+        }
+    }
+}
+```
+
+我们按照正常的顺序，分别调用method01() 和 method02() 那么，最终输出就是 a = 6
+
+但是如果在多线程环境下，因为方法1 和 方法2，他们之间不能存在数据依赖的问题，因此原先的顺序可能是
+
+```
+a = 1;
+flag = true;
+
+a = a + 5;
+System.out.println("reValue:" + a);
+        
+```
+
+但是在经过编译器，指令，或者内存的重排后，可能会出现这样的情况
+
+```
+flag = true;
+
+a = a + 5;
+System.out.println("reValue:" + a);
+
+a = 1;
+```
+
+也就是先执行 flag = true后，另外一个线程马上调用方法2，满足 flag的判断，最终让a + 5，结果为5，这样同样出现了数据不一致的问题
+
+为什么会出现这个结果：多线程环境中线程交替执行，由于编译器优化重排的存在，两个线程中使用的变量能否保证一致性是无法确定的，结果无法预测。
+
+这样就需要通过volatile来修饰，来保证线程安全性
+
+#####  Volatile针对指令重排做了啥
+
+Volatile实现禁止指令重排优化，从而避免了多线程环境下程序出现乱序执行的现象
+
+首先了解一个概念，内存屏障（Memory Barrier）又称内存栅栏，是一个CPU指令，它的作用有两个：
+
+- 保证特定操作的顺序
+- 保证某些变量的内存可见性（利用该特性实现volatile的内存可见性）
+
+由于编译器和处理器都能执行指令重排的优化，如果在指令间插入一条Memory Barrier则会告诉编译器和CPU，不管什么指令都不能和这条Memory Barrier指令重排序，也就是说 `通过插入内存屏障禁止在内存屏障前后的指令执行重排序优化`。 内存屏障另外一个作用是刷新出各种CPU的缓存数，因此任何CPU上的线程都能读取到这些数据的最新版本。
+
+####  线程安全获得保证
+
+工作内存与主内存同步延迟现象导致的可见性问题
+
+- 可通过synchronized或volatile关键字解决，他们都可以使一个线程修改后的变量立即对其它线程可见
+
+对于指令重排导致的可见性问题和有序性问题
+
+- 可以使用volatile关键字解决，因为volatile关键字的另一个作用就是禁止重排序优化
+
+#### volatile的应用
+
+**单例模式**
+
+单线程下的单例模式代码
+
+```
+/**
+ * SingletonDemo（单例模式）
+ *
+ * @author: 陌溪
+ * @create: 2020-03-10-16:40
+ */
+public class SingletonDemo {
+
+    private static SingletonDemo instance = null;
+
+    private SingletonDemo () {
+        System.out.println(Thread.currentThread().getName() + "\t 我是构造方法SingletonDemo");
+    }
+
+    public static SingletonDemo getInstance() {
+        if(instance == null) {
+            instance = new SingletonDemo();
+        }
+        return instance;
+    }
+
+    public static void main(String[] args) {
+        // 这里的 == 是比较内存地址
+        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+    }
+}
+```
+
+但是在多线程的环境下，我们的单例模式是否还是同一个对象了
+
+```
+public class SingletonDemo {
+
+    private static SingletonDemo instance = null;
+
+    private SingletonDemo () {
+        System.out.println(Thread.currentThread().getName() + "\t 我是构造方法SingletonDemo");
+    }
+
+    public static SingletonDemo getInstance() {
+        if(instance == null) {
+            instance = new SingletonDemo();
+        }
+        return instance;
+    }
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                SingletonDemo.getInstance();
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+```
+
+但不会运行10次。
+
+##### 解决1
+
+引入synchronized关键字
+
+```
+    public synchronized static SingletonDemo getInstance() {
+        if(instance == null) {
+            instance = new SingletonDemo();
+        }
+        return instance;
+    }
+```
+
+我们能够发现，通过引入Synchronized关键字，能够解决高并发环境下的单例模式问题
+
+但是synchronized属于重量级的同步机制，它只允许一个线程同时访问获取实例的方法，但是为了保证数据一致性，而减低了并发性，因此采用的比较少。
+
+##### 解决2
+
+通过引入DCL Double Check Lock 双端检锁机制
+
+就是在进来和出去的时候，进行检测
+
+```
+    public static SingletonDemo getInstance() {
+        if(instance == null) {
+            // 同步代码段的时候，进行检测
+            synchronized (SingletonDemo.class) {
+                if(instance == null) {
+                    instance = new SingletonDemo();
+                }
+            }
+        }
+        return instance;
+    }
+```
+
+DCL（双端检锁）机制不一定是线程安全的，原因是有**指令重排**的存在，加入volatile可以禁止指令重排
+
+原因是在某一个线程执行到第一次检测的时候，读取到 instance 不为null，instance的引用对象可能没有完成实例化。因为 instance = new SingletonDemo()；可以分为以下三步进行完成：
+
+- memory = allocate(); // 1、分配对象内存空间
+- instance(memory); // 2、初始化对象
+- instance = memory; // 3、设置instance指向刚刚分配的内存地址，此时instance != null
+
+但是我们通过上面的三个步骤，能够发现，步骤2 和 步骤3之间不存在 数据依赖关系，而且无论重排前 还是重排后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的。
+
+- memory = allocate(); // 1、分配对象内存空间
+- instance = memory; // 3、设置instance指向刚刚分配的内存地址，此时instance != null，但是对象还没有初始化完成
+- instance(memory); // 2、初始化对象
+
+这样就会造成什么问题呢？
+
+也就是当我们执行到重排后的步骤2，试图获取instance的时候，会得到null，因为对象的初始化还没有完成，而是在重排后的步骤3才完成，因此执行单例模式的代码时候，就会重新在创建一个instance实例
+
+```
+指令重排只会保证串行语义的执行一致性（单线程），但并不会关系多线程间的语义一致性
+```
+
+所以当一条线程访问instance不为null时，由于instance实例未必已初始化完成，这就造成了线程安全的问题
+
+所以需要引入volatile，来保证出现指令重排的问题，从而保证单例模式的线程安全性
+
+```
+private static volatile SingletonDemo instance = null;
+```
+
+```
+public class SingletonDemo {
+
+    private static volatile SingletonDemo instance = null;
+
+    private SingletonDemo () {
+        System.out.println(Thread.currentThread().getName() + "\t 我是构造方法SingletonDemo");
+    }
+
+    public static SingletonDemo getInstance() {
+        if(instance == null) {
+            // a 双重检查加锁多线程情况下会出现某个线程虽然这里已经为空，但是另外一个线程已经执行到d处
+            synchronized (SingletonDemo.class) //b
+            { 
+           //c不加volitale关键字的话有可能会出现尚未完全初始化就获取到的情况。原因是内存模型允许无序写入
+                if(instance == null) { 
+                	// d 此时才开始初始化
+                    instance = new SingletonDemo();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public static void main(String[] args) {
+//        // 这里的 == 是比较内存地址
+//        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+//        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+//        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+//        System.out.println(SingletonDemo.getInstance() == SingletonDemo.getInstance());
+
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                SingletonDemo.getInstance();
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+```
 
 ### ThreadLocal 
 
@@ -690,23 +1295,11 @@ HashTable线程安全。多线程不用HashTable，效率低，锁太重了。
 
 线程安全：CAS和synchronized，synchronized修饰静态代码块。
 
-#### CAS机制![1584279678821](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279678821.png)
+#### CAS机制
+
+#### ![1584279678821](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279678821.png)
 
 (只能确保一个共享变量的原子操作，循环时间长，ABA问题)
-
-ThreadLocal 内存泄漏问题 
-
-ThreadLocalMap生命周期和线程一样长 
-
-短生命周期持	长的生命周期对象，	内存泄漏。
-
-弱引用。
-
-对象new=强引用。方法没有运行完。JVM 垃圾回收机制。对象不回收。
-
-弱引用---对象。JVM GC垃圾回收。垃圾可以回收。
-
-##### 分段锁
 
 
 
@@ -2028,11 +2621,21 @@ public class CasClass {
 
 #### 为什么使用B+树
 
-1.B+树只有叶子节点上有data，可以减少索引占用的内存，同时索引会存储在磁盘上。B树都有data 磁盘IO次数就多啦。
+**不使用二叉树**：深度可能会很深 比如插入1、2、3、4、5、。。。一直向右排。
 
-2.B+树所有叶子结点有指针穿起来，可以遍历起来方便。
+**不使用红黑树**：深度深。（弱平衡二叉树）
 
-3.不用红黑树是因为红黑树深度比较大，
+mysql的每个节点16k的限制。
+
+B树叶子节点没有指针穿起来，同时每个节点上都有data
+
+**1.B+树只有叶子节点上有data，可以减少索引占用的内存，同时索引会存储在磁盘上。B树都有data 磁盘IO次数就多啦。**
+
+**2.B+树所有叶子结点有指针穿起来，可以遍历起来方便。**
+
+**3.不用红黑树是因为红黑树深度比较大，**
+
+哈希索引可以精确查找，但是不能范围查找。
 
 ### myisam和innodb区别
 
@@ -2042,7 +2645,7 @@ public class CasClass {
 
 3.InnoDB是聚集索引（只有主键索引是聚集索引，非主键索引是非聚集索引），使用B+Tree作为索引结构，数据文件是和（主键）索引绑在一起的（表数据文件本身就是按B+Tree组织的一个索引结构），必须要有主键，通过主键索引效率很高。但是辅助索引需要两次查询，先查询到主键，然后再通过主键查询到数据。因此，主键不应该过大，因为主键太大，其他索引也都会很大。
 
- MyISAM是非聚集索引，也是使用B+Tree作为索引结构，索引和数据文件是分离的，索引保存的是数据文件的指针。主键索引和辅助索引是独立的。
+ MyISAM是非聚集索引，也是使用B+Tree作为索引结构，索引和数据文件是分离的，索引保存的是数据文件的指针。主键索引和辅助索引是独立的。所以通过B+树，先查出来索引对应的数据文件的指针，然后再去MYD文件里面找数据。
 
 4.**InnoDB不保存表的具体行数，执行select count(\*) from table时需要全表扫描。而MyISAM用一个变量保存了整个表的行数**
 
@@ -2656,27 +3259,7 @@ GC两种类型：轻GC，重GC（全局GC）
 
 ![1583763621203](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583763621203.png)
 
-#### JMM Java Memory Model
 
-​	1.什么是JMM？
-
-​	
-
-​	2.它干嘛的？ 
-
-作用：缓存一致性协议，用于定义数据读写的规则（遵守，找到这个规则）。
-
-JMM和线程工作内存和主内存之间的抽象关系，线程之间的共享变量存储在主内存中，每个线程都有一个私有的本地内存。
-
-![1583771204572](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583771204572.png)
-
-解决共享对象可见性这个问题：voliate
-
-JMM：抽象的概念，
-
-![1583771431112](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583771431112.png)
-
-voliate解决一致性
 
 #### 总结
 
