@@ -588,7 +588,7 @@ JMM关于同步的规定：
 
 总线嗅探技术有哪些缺点？
 
-由于Volatile的MESI缓存一致性协议，需要不断的从主内存嗅探和CAS循环，无效的交互会导致总线带宽达到峰值。因此不要大量使用volatile关键字，至于什么时候使用volatile、什么时候用锁以及Syschonized都是需要根据实际场景的。
+由于Volatile的MESI缓存一致性协议，需要不断的从主内存嗅探和CAS循环，无效的交互会导致总线带宽达到峰值。因此不要大量使用volatile关键字，至于什么时候使用volatile、什么时候用锁以及Syschonized都是需要根据实际场景的。 
 
 
 
@@ -1145,6 +1145,80 @@ public class SingletonDemo {
 }
 ```
 
+### CAS机制
+
+#### 概念
+
+CAS的全称是Compare-And-Swap，它是CPU并发原语
+
+它的功能是判断内存某个位置的值是否为预期值，如果是则更改为新的值，这个过程是原子的
+
+CAS并发原语体现在Java语言中就是sun.misc.Unsafe类的各个方法。调用UnSafe类中的CAS方法，JVM会帮我们实现出CAS汇编指令，这是一种完全依赖于硬件的功能，通过它实现了原子操作，再次强调，由于CAS是一种系统原语，原语属于操作系统用于范畴，是由若干条指令组成，用于完成某个功能的一个过程，并且原语的执行必须是连续的，在执行过程中不允许被中断，也就是说CAS是一条CPU的原子指令，不会造成所谓的数据不一致的问题，也就是说CAS是线程安全的。
+
+#### 代码使用
+
+首先调用AtomicInteger创建了一个实例， 并初始化为5
+
+```
+        // 创建一个原子类
+        AtomicInteger atomicInteger = new AtomicInteger(5);
+```
+
+然后调用CAS方法，企图更新成2019，这里有两个参数，一个是5，表示期望值，第二个就是我们要更新的值
+
+```
+atomicInteger.compareAndSet(5, 2019)
+```
+
+然后再次使用了一个方法，同样将值改成1024
+
+```
+atomicInteger.compareAndSet(5, 1024)
+```
+
+完整代码如下：
+
+```
+/**
+ * CASDemo
+ *
+ * 比较并交换：compareAndSet
+ *
+ * @author: 陌溪
+ * @create: 2020-03-10-19:46
+ */
+public class CASDemo {
+    public static void main(String[] args) {
+        // 创建一个原子类
+        AtomicInteger atomicInteger = new AtomicInteger(5);
+
+        /**
+         * 一个是期望值，一个是更新值，但期望值和原来的值相同时，才能够更改
+         * 假设三秒前，我拿的是5，也就是expect为5，然后我需要更新成 2019
+         */
+        System.out.println(atomicInteger.compareAndSet(5, 2019) + "\t current data: " + atomicInteger.get());
+
+        System.out.println(atomicInteger.compareAndSet(5, 1024) + "\t current data: " + atomicInteger.get());
+    }
+}
+```
+
+上面代码的执行结果为
+
+![image-20200310201327734](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/2_%E8%B0%88%E8%B0%88CAS/5_CAS%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/images/image-20200310201327734.png)
+
+这是因为我们执行第一个的时候，期望值和原本值是满足的，因此修改成功，但是第二次后，主内存的值已经修改成了2019，不满足期望值，因此返回了false，本次写入失败
+
+![image-20200310201311367](https://gitee.com/moxi159753/LearningNotes/raw/master/%E6%A0%A1%E6%8B%9B%E9%9D%A2%E8%AF%95/JUC/2_%E8%B0%88%E8%B0%88CAS/5_CAS%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/images/image-20200310201311367.png)
+
+这个就类似于SVN或者Git的版本号，如果没有人更改过，就能够正常提交，否者需要先将代码pull下来，合并代码后，然后提交
+
+#### ![1584279678821](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279678821.png)
+
+(只能确保一个共享变量的原子操作，循环时间长，ABA问题)
+
+
+
 ### ThreadLocal 
 
  ThreadLocal是一个线程内部的数据存储类，通过它可以在指定的线程中存储数据，数据存储以后，只有在指定的线程中可以获取到存储的数据，对于其他线程来说则无法取到数据。 
@@ -1294,12 +1368,6 @@ HashTable线程安全。多线程不用HashTable，效率低，锁太重了。
 多线程，有多个栈.
 
 线程安全：CAS和synchronized，synchronized修饰静态代码块。
-
-#### CAS机制
-
-#### ![1584279678821](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279678821.png)
-
-(只能确保一个共享变量的原子操作，循环时间长，ABA问题)
 
 
 
