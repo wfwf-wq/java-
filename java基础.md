@@ -1,4 +1,4 @@
-# JAVA 
+JAVA 
 
 1.hashmap 线程不同步  hashtable 同步
 2.arraylist线程不同步，vector线程同步
@@ -67,7 +67,7 @@ List<String> list = Arrays.asList("ab", "cd", "ef");
 
 
 
-![1585791566811](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585791566811.png)
+![1585791566811](D:\java-\java基础.assets\1585791566811.png)
 
 
 
@@ -532,7 +532,7 @@ public final int getAndAddInt(Object paramObject, long paramLong, int paramInt) 
 
 abstractmap  抽象骨架类
 
-![1584276029707](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584276029707.png)
+![1584276029707](D:\java-\java基础.assets\1584276029707.png)
 
 ### Hash是什么？
 
@@ -546,13 +546,15 @@ max=1111=16-1
 
 min=0  
 
-![1584278088567](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584278088567.png)
+![1584278088567](D:\java-\java基础.assets\1584278088567.png)
 
-![1584278265676](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584278265676.png)
+![1584278265676](D:\java-\java基础.assets\1584278265676.png)
 
-![1584279008971](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279008971.png)
+![1584279008971](D:\java-\java基础.assets\1584279008971.png)
 
-![1584279023838](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279023838.png)
+
+
+![1584279023838](D:\java-\java基础.assets\1584279023838.png)
 
 ### 扩容
 
@@ -576,7 +578,7 @@ Hash算法分散数据存储hash（n）%4=
 
 一致性hash算法是对2^32取模，得到一个值K1，hash环上顺时针找到服务器节点。因为一致性hash是对服务器的负载均衡问题的，服务器IP是32位，所以对2^32取模。
 
-![1586590816782](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586590816782.png)
+![1586590816782](D:\java-\java基础.assets\1586590816782.png)
 
 **优势：**如果B失效了，可以迁移至C。
 
@@ -804,7 +806,7 @@ newElements[len] = e;
 
 首先我们查看hashSet的add方法
 
-```
+```java
     public boolean add(E e) {
         return map.put(e, PRESENT)==null;
     }
@@ -818,7 +820,7 @@ newElements[len] = e;
 
 同理HashMap在多线程环境下，也是不安全的
 
-```
+```java
     public static void main(String[] args) {
 
         Map<String, String> map = new HashMap<>();
@@ -838,7 +840,7 @@ newElements[len] = e;
 
 2、使用 ConcurrentHashMap
 
-```
+```java
 Map<String, String> map = new ConcurrentHashMap<>();
 ```
 
@@ -860,14 +862,14 @@ CountDownLatch主要有两个方法，当一个或多个线程调用await方法�
 
 这个时候就用到了CountDownLatch，计数器了。我们一共创建6个线程，然后计数器的值也设置成6
 
-```
+```java
 // 计数器
 CountDownLatch countDownLatch = new CountDownLatch(6);
 ```
 
 然后每次学生线程执行完，就让计数器的值减1
 
-```
+```java
 for (int i = 0; i <= 6; i++) {
     new Thread(() -> {
         System.out.println(Thread.currentThread().getName() + "\t 上完自习，离开教室");
@@ -878,7 +880,7 @@ for (int i = 0; i <= 6; i++) {
 
 最后我们需要通过CountDownLatch的await方法来控制班长主线程的执行，这里 countDownLatch.await()可以想成是一道墙，只有当计数器的值为0的时候，墙才会消失，主线程才能继续往下执行
 
-```
+```java
 countDownLatch.await();
 
 System.out.println(Thread.currentThread().getName() + "\t 班长最后关门");
@@ -916,7 +918,7 @@ main	 班长最后关门
 
 
 
-```
+```java
 package com.moxi.interview.study.thread;
 
 import java.util.concurrent.CountDownLatch;
@@ -963,7 +965,7 @@ CyclicBarrier的字面意思就是可循环（cyclic）使用的屏障（Barrier
 
 集齐7个龙珠，召唤神龙的Demo，我们需要首先创建CyclicBarrier
 
-```
+```java
 /**
 * 定义一个循环屏障，参数1：需要累加的值，参数2 需要执行的方法
 */
@@ -974,7 +976,7 @@ CyclicBarrier cyclicBarrier = new CyclicBarrier(7, () -> {
 
 然后同时编写七个线程，进行龙珠收集，但一个线程收集到了的时候，我们需要让他执行await方法，等待到7个线程全部执行完毕后，我们就执行原来定义好的方法
 
-```
+```java
         for (int i = 0; i < 7; i++) {
             final Integer tempInt = i;
             new Thread(() -> {
@@ -994,7 +996,7 @@ CyclicBarrier cyclicBarrier = new CyclicBarrier(7, () -> {
 
 完整代码
 
-```
+```java
 /**
  * CyclicBarrier循环屏障
  *
@@ -1042,7 +1044,7 @@ public class CyclicBarrierDemo {
 
 那么我们首先需要定义信号量为3，也就是3个停车位
 
-```
+```java
 /**
 * 初始化一个信号量为3，默认是false 非公平锁， 模拟3个停车位
 */
@@ -1051,14 +1053,14 @@ Semaphore semaphore = new Semaphore(3, false);
 
 然后我们模拟6辆车同时并发抢占停车位，但第一个车辆抢占到停车位后，信号量需要减1
 
-```
+```java
 // 代表一辆车，已经占用了该车位
 semaphore.acquire(); // 抢占
 ```
 
 同时车辆假设需要等待3秒后，释放信号量
 
-```
+```java
 // 每个车停3秒
 try {
 	TimeUnit.SECONDS.sleep(3);
@@ -1069,14 +1071,14 @@ try {
 
 最后车辆离开，释放信号量
 
-```
+```java
 // 释放停车位
 semaphore.release();
 ```
 
 完整代码
 
-```
+```java
 /**
  * 信号量Demo
  * @author: 陌溪
@@ -1273,7 +1275,7 @@ Exception in thread "main" java.util.NoSuchElementException
 
 同时在取的时候，如果队列已空，那么会返回null
 
-```
+```java
 BlockingQueue blockingQueue = new ArrayBlockingQueue(3);
 
 System.out.println(blockingQueue.offer("a"));
@@ -1306,7 +1308,7 @@ null
 
 一般在消息中间件，比如RabbitMQ中会使用到，因为需要保证消息百分百不丢失，因此只有让它阻塞
 
-```
+```java
 BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
 blockingQueue.put("a");
 blockingQueue.put("b");
@@ -1327,7 +1329,7 @@ offer( ) ， poll 加时间
 
 使用offer插入的时候，需要指定时间，如果2秒还没有插入，那么就放弃插入
 
-```
+```java
 BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
 System.out.println(blockingQueue.offer("a", 2L, TimeUnit.SECONDS));
 System.out.println(blockingQueue.offer("b", 2L, TimeUnit.SECONDS));
@@ -1337,7 +1339,7 @@ System.out.println(blockingQueue.offer("d", 2L, TimeUnit.SECONDS));
 
 同时取的时候也进行判断
 
-```
+```java
 System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
 System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
 System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
@@ -1358,7 +1360,7 @@ SynchronousQueue没有容量，与其他BlockingQueue不同，SynchronousQueue�
 
 生产的线程分别put了 A、B、C这三个字段
 
-```
+```java
 BlockingQueue<String> blockingQueue = new SynchronousQueue<>();
 
 new Thread(() -> {
@@ -1447,7 +1449,7 @@ t2	 take C
 
 我们下面实现一个简单的生产者消费者模式，首先有资源类ShareData
 
-```
+```java
 /**
  * 资源类
  */
@@ -1514,7 +1516,7 @@ class ShareData {
 
 但是我们在进行判断的时候，为了防止出现虚假唤醒机制，不能使用if来进行判断，而应该使用while
 
-```
+```java
 // 判断
 while(number != 0) {
     // 等待不能生产
@@ -1524,7 +1526,7 @@ while(number != 0) {
 
 不能使用 if判断
 
-```
+```java
 // 判断
 if(number != 0) {
     // 等待不能生产
@@ -1534,7 +1536,7 @@ if(number != 0) {
 
 完整代码
 
-```
+```java
 /**
  * 生产者消费者 传统版
  * 题目：一个初始值为0的变量，两个线程对其交替操作，一个加1，一个减1，来5轮
@@ -1661,7 +1663,7 @@ t2	 0
 
 现在我们使用新版的阻塞队列版生产者和消费者，使用：volatile、CAS、atomicInteger、BlockQueue、线程交互、原子引用
 
-```
+```java
 /**
  * 生产者消费者  阻塞队列版
  * 使用：volatile、CAS、atomicInteger、BlockQueue、线程交互、原子引用
@@ -1948,7 +1950,7 @@ jstack  7560   # 后面参数是 jps输出的该类的pid
 
 得到的结果
 
-```
+```java
 Found one Java-level deadlock:
 =============================
 "t2":
@@ -2029,7 +2031,7 @@ ReentrantLock / Synchronized 就是一个典型的可重入锁
 
 可重入锁就是，在一个method1方法中加入一把锁，方法2也加锁了，那么他们拥有的是同一把锁
 
-```
+```java
 public synchronized void method1() {
 	method2();
 }
@@ -2049,7 +2051,7 @@ public synchronized void method2() {
 
 #### 证明Synchronized
 
-```
+```java
 /**
  * 可重入锁（也叫递归锁）
  * 指的是同一线程外层函数获得锁之后，内层递归函数仍然能获取到该锁的代码，在同一线程在外层方法获取锁的时候，在进入内层方法会自动获取锁
@@ -2130,7 +2132,7 @@ t2	 invoked sendEmail()    t2在进入内层方法会自动获取锁
 
 #### 证明ReentrantLock
 
-```
+```java
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -2188,7 +2190,7 @@ public class ReenterLockDemo {
 
 现在我们使用ReentrantLock进行验证，首先资源类实现了Runnable接口，重写Run方法，里面调用get方法，get方法在进入的时候，就加了锁
 
-```
+```java
     public void getLock() {
         lock.lock();
         try {
@@ -2202,7 +2204,7 @@ public class ReenterLockDemo {
 
 然后在方法里面，又调用另外一个加了锁的setLock方法
 
-```
+```java
     public void setLock() {
         lock.lock();
         try {
@@ -2224,7 +2226,7 @@ t4	 set Lock
 
 **当我们在getLock方法加两把锁会是什么情况呢？** (阿里面试)
 
-```
+```java
     public void getLock() {
         lock.lock();
         lock.lock();
@@ -2242,7 +2244,7 @@ t4	 set Lock
 
 **当我们在getLock方法加两把锁，但是只解一把锁会出现什么情况呢？**
 
-```
+```java
 public void getLock() {
     lock.lock();
     lock.lock();
@@ -2267,7 +2269,7 @@ t3	 set Lock
 
 **当我们只加一把锁，但是用两把锁来解锁的时候，又会出现什么情况呢？**
 
-```
+```java
     public void getLock() {
         lock.lock();
         try {
@@ -2323,7 +2325,7 @@ java.lang.IllegalMonitorStateException
 
 通过CAS操作完成自旋锁，A线程先进来调用myLock方法自己持有锁5秒，B随后进来发现当前有线程持有锁，不是null，所以只能通过自旋等待，直到A释放锁后B随后抢到
 
-```
+```java
 /**
  * 手写一个自旋锁
  *
@@ -2449,7 +2451,7 @@ t2	 invoked myUnlock()
 
 实现一个读写缓存的操作，假设开始没有加锁的时候，会出现什么情况
 
-```
+```java
 /**
  * 读写锁
  * 多个线程 同时读一个资源类没有任何问题，所以为了满足并发量，读取共享资源应该可以同时进行
@@ -2531,7 +2533,7 @@ public class ReadWriteLockDemo {
 
 我们分别创建5个线程写入缓存
 
-```
+```java
         // 线程操作资源类，5个线程写
         for (int i = 0; i < 5; i++) {
             // lambda表达式内部必须是final
@@ -2544,7 +2546,7 @@ public class ReadWriteLockDemo {
 
 5个线程读取缓存，
 
-```
+```java
         // 线程操作资源类， 5个线程读
         for (int i = 0; i < 5; i++) {
             // lambda表达式内部必须是final
@@ -2618,7 +2620,7 @@ rwLock.readLock().unlock();
 
 完整代码：
 
-```
+```java
 /**
  * 读写锁
  * 多个线程 同时读一个资源类没有任何问题，所以为了满足并发量，读取共享资源应该可以同时进行
@@ -2811,7 +2813,7 @@ public class ReadWriteLockDemo {
 
 **在JVM中对象的存储**
 
-![1586657194061](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586657194061.png)
+![1586657194061](D:\java-\java基础.assets\1586657194061.png)
 
 对象头主要由Mark Word 和Class Metadata Address组成。
 
@@ -2918,7 +2920,7 @@ JMM的三大特性，volatile只保证了两个，即可见性和有序性，不
 
 ### 可见性代码验证
 
-```
+```java
 /**
  * Volatile Java虚拟机提供的轻量级同步机制
  *
@@ -3028,7 +3030,7 @@ class MyData {
 
 为了测试volatile是否保证原子性，我们创建了20个线程，然后每个线程分别循环1000次，来调用number++的方法
 
-```
+```java
         MyData myData = new MyData();
 
         // 创建10个线程，线程里面进行1000次循环
@@ -3044,7 +3046,7 @@ class MyData {
 
 最后通过 Thread.activeCount()，来感知20个线程是否执行完毕，这里判断线程数是否大于2，为什么是2？因为默认是有两个线程的，一个main线程，一个gc线程
 
-```
+```java
 // 需要等待上面20个线程都计算完成后，在用main线程取得最终的结果值
 while(Thread.activeCount() > 2) {
     // yield表示不执行
@@ -3058,7 +3060,7 @@ while(Thread.activeCount() > 2) {
 
 完整代码如下所示：
 
-```
+```java
 /**
  * Volatile Java虚拟机提供的轻量级同步机制
  *
@@ -3164,7 +3166,7 @@ public class VolatileDemo {
 
 除了引用synchronized关键字外，还可以使用JUC下面的原子包装类，即刚刚的int类型的number，可以使用AtomicInteger来代替
 
-```
+```java
     /**
      *  创建一个原子Integer包装类，默认为0
       */
@@ -3294,7 +3296,7 @@ Volatile实现禁止指令重排优化，从而避免了多线程环境下程序
 
 单线程下的单例模式代码
 
-```
+```java
 /**
  * SingletonDemo（单例模式）
  *
@@ -3328,7 +3330,7 @@ public class SingletonDemo {
 
 但是在多线程的环境下，我们的单例模式是否还是同一个对象了
 
-```
+```java
 public class SingletonDemo {
 
     private static SingletonDemo instance = null;
@@ -3360,7 +3362,7 @@ public class SingletonDemo {
 
 引入synchronized关键字
 
-```
+```java
     public synchronized static SingletonDemo getInstance() {
         if(instance == null) {
             instance = new SingletonDemo();
@@ -3379,7 +3381,7 @@ public class SingletonDemo {
 
 就是在进来和出去的时候，进行检测
 
-```
+```java
     public static SingletonDemo getInstance() {
         if(instance == null) {
             // 同步代码段的时候，进行检测
@@ -3423,7 +3425,7 @@ DCL（双端检锁）机制不一定是线程安全的，原因是有**指令重
 private static volatile SingletonDemo instance = null;
 ```
 
-```
+```java
 public class SingletonDemo {
 
     private static volatile SingletonDemo instance = null;
@@ -3496,7 +3498,7 @@ atomicInteger.compareAndSet(5, 1024)
 
 完整代码如下：
 
-```
+```java
 /**
  * CASDemo
  *
@@ -3531,7 +3533,7 @@ public class CASDemo {
 
 这个就类似于SVN或者Git的版本号，如果没有人更改过，就能够正常提交，否者需要先将代码pull下来，合并代码后，然后提交
 
-![1584279678821](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584279678821.png)
+![1584279678821](D:\java-\java基础.assets\1584279678821.png)
 
 (只能确保一个共享变量的原子操作，循环时间长，ABA问题)
 
@@ -3700,7 +3702,7 @@ public class AtomicReferenceDemo {
 
 我们首先创建了两个线程，然后T1线程，执行一次ABA的操作，T2线程在一秒后修改主内存的值
 
-```
+```java
 /**
  * ABA问题的解决，AtomicStampedReference
  * @author: 陌溪
@@ -3756,7 +3758,7 @@ T2： 100 1 101 2 100 3
 
 时间戳原子引用，来这里应用于版本号的更新，也就是每次更新的时候，需要比较期望值和当前值，以及期望版本号和当前版本号
 
-```
+```java
 /**
  * ABA问题的解决，AtomicStampedReference
  * @author: 陌溪
@@ -3914,7 +3916,7 @@ private Lock lock = new ReentrantLock();
 
 然后定义三个条件，也可以称为锁的钥匙，通过它就可以获取到锁，进入到方法里面
 
-```
+```java
 // 这三个相当于备用钥匙
 private Condition condition1 = lock.newCondition();
 private Condition condition2 = lock.newCondition();
@@ -3929,7 +3931,7 @@ private Condition condition3 = lock.newCondition();
 
 唤醒的话，就是修改资源类的值，然后精准唤醒线程进行干活：这里A 唤醒B， B唤醒C，C又唤醒A
 
-```
+```java
     public void print5() {
         lock.lock();
         try {
@@ -4090,11 +4092,11 @@ public class SyncAndReentrantLockDemo {
 
 syn锁的底层是CAS。
 
-![1586007167144](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586007167144.png)
-
-![1586006917828](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586006917828.png)
+![1586007167144](D:\java-\java基础.assets\1586007167144.png)
 
 
+
+![1586006917828](D:\java-\java基础.assets\1586006917828.png)
 
 
 
@@ -4753,7 +4755,7 @@ Dead（死亡状态）
 
 
 
-![1586789663923](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586789663923.png)
+![1586789663923](D:\java-\java基础.assets\1586789663923.png)
 
 
 
@@ -4775,9 +4777,9 @@ Dead（死亡状态）
 
 ​					ARP的报文格式
 
-​						![1584158110177](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584158110177.png)
+​						![1584158110177](D:\java-\java基础.assets\1584158110177.png)
 
-​				![1584158134251](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584158134251.png)
+​				![1584158134251](D:\java-\java基础.assets\1584158134251.png)
 
 ​					ARP查询原理
 
@@ -4821,9 +4823,9 @@ Dead（死亡状态）
 
 ​					HTTPS协议：详细握手过程
 
-![1584102447568](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584102447568.png)			
 
-​					
+
+​				![1584102447568](D:\java-\java基础.assets\1584102447568.png)	
 
 
 
@@ -4925,7 +4927,7 @@ url_hash： 按访问url的hash结果来分配请求，使每个url定向到同�
 
 ### tcp三次握手
 
-![1584107628688](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584107628688.png)
+![1584107628688](D:\java-\java基础.assets\1584107628688.png)
 
 seq是报文序列号， SYN=1是同步，ACK是确认位=1是有效的，ack是确认位字段的值。告诉服务器我要连接，并告诉他我的发送能力。然后返回一个接收能力，
 
@@ -4935,7 +4937,7 @@ seq是报文序列号， SYN=1是同步，ACK是确认位=1是有效的，ack是
 
 ### tcp四次挥手
 
-![1584108974396](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584108974396.png)
+![1584108974396](D:\java-\java基础.assets\1584108974396.png)
 
 FIN=1表示要关闭 ，seq序列号
 
@@ -5070,7 +5072,7 @@ session也是记录客户状态的机制，保存在服务器上。
 
 **强制缓存**： 向浏览器缓存查找该请求结果，并根据该结果的缓存规则来决定是否使用该缓存结果的过程，强制缓存的情况主要有三种(暂不分析协商缓存过程) 
 
-![1584412404514](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584412404514.png)
+![1584412404514](D:\java-\java基础.assets\1584412404514.png)
 
 **协商缓存**：
 
@@ -5078,9 +5080,9 @@ session也是记录客户状态的机制，保存在服务器上。
 
 协商缓存生效，返回304，如下
 
-![1584412487839](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584412487839.png)
+![1584412487839](D:\java-\java基础.assets\1584412487839.png)
 
-![1584412497426](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584412497426.png)
+![1584412497426](D:\java-\java基础.assets\1584412497426.png)
 
 
 
@@ -5098,7 +5100,7 @@ session也是记录客户状态的机制，保存在服务器上。
 
 ​	持久层：和数据库进行交互
 
-![1585824334598](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585824334598.png)
+![1585824334598](D:\java-\java基础.assets\1585824334598.png)
 
 持久层技术解决方案
 
@@ -5128,19 +5130,17 @@ Apache中的DBUtils：
 
 ## 环境搭建
 
-
-
-![1585831077072](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585831077072.png)
+![1585831077072](D:\java-\java基础.assets\1585831077072.png)
 
 **配置的文件，主配置文件**
 
-![1585831155405](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585831155405.png)
+![1585831155405](D:\java-\java基础.assets\1585831155405.png)
 
-![1585831254047](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585831254047.png)
+![1585831254047](D:\java-\java基础.assets\1585831254047.png)
 
 映射文件的路径和dao包结构相同。
 
-![1585832978792](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585832978792.png)
+![1585832978792](D:\java-\java基础.assets\1585832978792.png)
 
 实现了三四五，就不用写dao的实现类。
 
@@ -5158,7 +5158,7 @@ Apache中的DBUtils：
 
 6.释放资源。
 
-![1585833907209](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585833907209.png)
+![1585833907209](D:\java-\java基础.assets\1585833907209.png)
 
 1、使用类加载器，只能读取类路径的配置文件。
 
@@ -5176,17 +5176,17 @@ Apache中的DBUtils：
 
 第二：代理对象中调用selectList
 
-![1585919417088](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585919417088.png)
+![1585919417088](D:\java-\java基础.assets\1585919417088.png)
 
 ### 执行查询的分析
 
-![1585922047833](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585922047833.png)
+![1585922047833](D:\java-\java基础.assets\1585922047833.png)
 
-![1585922225414](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585922225414.png)
+![1585922225414](D:\java-\java基础.assets\1585922225414.png)
 
 ### 创建代理对象的分析
 
-![1585998310452](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585998310452.png)
+![1585998310452](D:\java-\java基础.assets\1585998310452.png)
 
 ## 手写框架
 
@@ -5302,7 +5302,7 @@ beanfactory：
 
 **java对象加载流程：**
 
-![1584360135967](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584360135967.png)
+![1584360135967](D:\java-\java基础.assets\1584360135967.png)
 
 **spring流程：**
 
@@ -5382,7 +5382,7 @@ factorybean在IOC容器的基础上给Bean的实现加上了一个简单工厂�
 
 #### BeanPostProcessor和BeanFactoryPostProcessor的区别
 
-![1584357313786](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584357313786.png)
+![1584357313786](D:\java-\java基础.assets\1584357313786.png)
 
 初始化方法之前和之后执行，两个方法。增强bean。
 
@@ -5436,39 +5436,39 @@ set方法注入
 
 ### 用于创建对象的
 
-![1583290617764](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290617764.png)
+![1583290617764](D:\java-\java基础.assets\1583290617764.png)
 
-![1583290631857](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290631857.png)
+![1583290631857](D:\java-\java基础.assets\1583290631857.png)
 
 ### 用于注入数据的
 
-![1583290679144](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290679144.png)
+![1583290679144](D:\java-\java基础.assets\1583290679144.png)
 
-![1583290690122](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290690122.png)
+![1583290690122](D:\java-\java基础.assets\1583290690122.png)
 
 ### 用于改变作用范围的、生命周期
 
-![1583290698929](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290698929.png)
+![1583290698929](D:\java-\java基础.assets\1583290698929.png)
 
 ### 配置xml
 
-![1583290830550](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290830550.png)
+![1583290830550](D:\java-\java基础.assets\1583290830550.png)
 
-![1583290841150](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290841150.png)
+![1583290841150](D:\java-\java基础.assets\1583290841150.png)
 
 ## 配置类
 
-![1583290921599](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290921599.png)
+![1583290921599](D:\java-\java基础.assets\1583290921599.png)
 
-![1583290928172](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583290928172.png)
+![1583290928172](D:\java-\java基础.assets\1583290928172.png)
 
-![1583291206135](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583291206135.png)
+![1583291206135](D:\java-\java基础.assets\1583291206135.png)
 
 ## 动态代理
 
-![1583503759086](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583503759086.png)
+![1583503759086](D:\java-\java基础.assets\1583503759086.png)
 
-![1583503776104](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583503776104.png)
+![1583503776104](D:\java-\java基础.assets\1583503776104.png)
 
 ## AOP
 
@@ -5480,9 +5480,9 @@ JDK.proxy可以生成语言接口。如果原来类没有实现接口就不合�
 
 cglib使用自解码的编辑器，ASM的一个编辑器，可以生成一个目标类的子类，去实现类似的代理功能。创建对象过程中做的慢，运行时候效率更高。
 
-面向切面编程，是OOP的延伸
+面向切面编程，是OOP的延伸![1583897134261](D:\java-\java基础.assets\1583897134261.png)
 
-![1583897134261](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583897134261.png)
+
 
 使用动态代理
 
@@ -5492,39 +5492,41 @@ cglib使用自解码的编辑器，ASM的一个编辑器，可以生成一个目
 
 切入点：业务层中支持事务的方法是切入点。
 
-![1584094595029](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584094595029.png)
+![1584094595029](D:\java-\java基础.assets\1584094595029.png)
 
 
 
-![1584094630020](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584094630020.png)
+![1584094630020](D:\java-\java基础.assets\1584094630020.png)
+
+
 
 ### spring基于xml配置AOP的步骤
 
-![1584155845370](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584155845370.png)
+![1584155845370](D:\java-\java基础.assets\1584155845370.png)
 
 ### 切入点表达式写法
 
-![1584156075954](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156075954.png)
+![1584156075954](D:\java-\java基础.assets\1584156075954.png)
 
-![1584156090487](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156090487.png)
+![1584156090487](D:\java-\java基础.assets\1584156090487.png)
 
 ### 四种常用的通知类型
 
-![1584156721555](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156721555.png)
+![1584156721555](D:\java-\java基础.assets\1584156721555.png)
 
-![1584156772465](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156772465.png)
+![1584156772465](D:\java-\java基础.assets\1584156772465.png)
 
-![1584156735399](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156735399.png)
+![1584156735399](D:\java-\java基础.assets\1584156735399.png)
 
-![1584156754511](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584156754511.png)
+![1584156754511](D:\java-\java基础.assets\1584156754511-1594128665259.png)
 
 ### 环绕通知
 
-![1584157095888](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584157095888.png)
-
-![1584157384619](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584157384619.png)
+![1584157095888](D:\java-\java基础.assets\1584157095888.png)
 
 
+
+![1584157384619](D:\java-\java基础.assets\1584157384619.png)
 
 # SpringMVC
 
@@ -5538,7 +5540,7 @@ cglib使用自解码的编辑器，ASM的一个编辑器，可以生成一个目
 4、tomcat接收到返回的信息，返回给浏览器。
 5、浏览器接收到返回消息后，tomcat销毁Request和Response两个对象，同时销毁这两个对象所获得的信息。
 
-![1584500125235](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584500125235.png)
+![1584500125235](D:\java-\java基础.assets\1584500125235.png)
 
 
 
@@ -5590,15 +5592,15 @@ Multi-Version Concurrency Control，多版本并发控制。
 
 行锁：共享锁。 lock in share mode，无法修改（读锁）
 
-![1586436670064](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586436670064.png)
+![1586436670064](D:\java-\java基础.assets\1586436670064.png)
 
 排它锁：其他人无法操作。
 
-![1586436869515](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586436869515.png)
+![1586436869515](D:\java-\java基础.assets\1586436869515.png)
 
 ## 意向锁
 
-表锁、无法手动创建。![1586437113140](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586437113140.png)
+表锁、无法手动创建。![1586437113140](D:\java-\java基础.assets\1586437113140.png)
 
 ## 间隙锁和临键锁
 
@@ -5732,7 +5734,7 @@ public class CasClass {
 
 这个可以在explain中看它执行计划的时候，extra字段里面有using index condition可以看到。 
 
-![1587299628852](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1587299628852.png)
+![1587299628852](D:\java-\java基础.assets\1587299628852.png)
 
 **id**：执行顺序，sql从大到小的执行。如果是 explain select * from (select * from ( select * from t3 where id=3952602) a) b; 则id=3；
 
@@ -5821,7 +5823,7 @@ public class CasClass {
 
 2.考虑用覆盖索引和最左原则
 
-![三星索引](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586860917725.png)
+![1586860917725](D:\java-\java基础.assets\1586860917725.png)
 
 
 
@@ -5911,13 +5913,13 @@ B树叶子节点没有指针穿起来，同时每个节点上都有data
 
 ## 使用场景
 
-![1584189197816](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584189197816.png)
+![1584189197816](D:\java-\java基础.assets\1584189197816.png)
 
 ## String
 
-![1584190529768](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584190529768.png)
+![1584190529768](D:\java-\java基础.assets\1584190529768.png)
 
-![1584190595070](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584190595070.png)
+![1584190595070](D:\java-\java基础.assets\1584190595070.png)
 
 setnx  （not exist）不存在才可以设置
 
@@ -5925,27 +5927,27 @@ setnx  （not exist）不存在才可以设置
 
 ### 应用场景
 
-![1584192655874](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584192655874.png)
+![1584192655874](D:\java-\java基础.assets\1584192655874.png)
 
 
 
 ## Hash
 
-![1584191017260](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584191017260.png)
+![1584191017260](D:\java-\java基础.assets\1584191017260.png)
 
 ### 应用场景
 
-![1584193249925](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584193249925.png)
+![1584193249925](D:\java-\java基础.assets\1584193249925.png)
 
 先找到key应该怎么设计？1.
 
 ### 优缺点
 
-![1584191030089](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584191030089.png)
+![1584191030089](D:\java-\java基础.assets\1584191030089.png)
 
 ## List
 
-![1586178722139](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586178722139.png)
+![1586178722139](D:\java-\java基础.assets\1586178722139.png)
 
 阻塞队列Blocking-queue-brpop（平时和rpop一样，但是没有数据时会一直等待）
 
@@ -5953,11 +5955,11 @@ List ：lpush（rpush） key xxx
 
 栈：lpush和lpop   队列lpush和rpop
 
-![1586178935307](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586178935307.png)
+![1586178935307](D:\java-\java基础.assets\1586178935307.png)
 
 **重要：如何处理一对多关系的设计。**
 
-![1586179025896](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586179025896.png)
+![1586179025896](D:\java-\java基础.assets\1586179025896.png)
 
 ## Set
 
@@ -5965,13 +5967,13 @@ List ：lpush（rpush） key xxx
 
  Redis 中集合是通过hashtable实现的，所以添加，删除，查找的复杂度都是 O(1)。 
 
-![1584268084219](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584268084219.png)
+![1584268084219](D:\java-\java基础.assets\1584268084219.png)
 
-![1584268096703](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584268096703.png)
+![1584268096703](D:\java-\java基础.assets\1584268096703.png)
 
-![1584268185945](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584268185945.png)
+![1584268185945](D:\java-\java基础.assets\1584268185945.png)
 
-![1586180455688](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586180455688.png)
+![1586180455688](D:\java-\java基础.assets\1586180455688.png)
 
 
 
@@ -5991,11 +5993,11 @@ List ：lpush（rpush） key xxx
 
 为什么不使用红黑树：因为是单线程，跳跃表更简洁。
 
-![1584353766643](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584353766643.png)
+![1584353766643](D:\java-\java基础.assets\1584353766643.png)
 
 其中每一个数据的层数是随机的。
 
-![1584355772566](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584355772566.png)
+![1584355772566](D:\java-\java基础.assets\1584355772566.png)
 
 用score来寻找数据，
 
@@ -6009,7 +6011,7 @@ RDB和AOF
 
 ​	把当前进程数据生成快照保存到硬盘的过程，手动触发和自动触发。
 
-![1585734649258](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585734649258.png)
+![1585734649258](D:\java-\java基础.assets\1585734649258.png)
 
 1. Redis父进程首先判断：当前是否在执行save，或bgsave/bgrewriteaof（后面会详细介绍该命令）的子进程，如果在执行则bgsave命令直接返回。bgsave/bgrewriteaof 的子进程不能同时执行，主要是基于性能方面的考虑：两个并发的子进程同时执行大量的磁盘写操作，可能引起严重的性能问题。
 2. 父进程执行fork操作创建子进程，这个过程中父进程是阻塞的，Redis不能执行来自客户端的任何命令
@@ -6040,7 +6042,7 @@ RDB文件是特定的二进制文件格式，存在兼容问题。
 
 独立日志形式记录每次写命令，重启后再执行AOF文件中的命令，作用是解决实时性。
 
-![1585735591430](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585735591430.png)
+![1585735591430](D:\java-\java基础.assets\1585735591430.png)
 
  开启AOF功能需要设置配置：appendonly yes，默认不开启。AOF文件名通过appendfilename配置设置，默认文件名是appendonly.aof。 
 
@@ -6064,7 +6066,7 @@ RDB文件是特定的二进制文件格式，存在兼容问题。
 
 #### AOF文件同步
 
-![1585748737999](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585748737999.png)
+![1585748737999](D:\java-\java基础.assets\1585748737999.png)
 
 no：快，持久化没有保障。
 
@@ -6080,7 +6082,7 @@ eyerysec：可能丢失一秒内的数据。 write操作会触发延迟写机制
 
 重写可以降低文件占用空间，可以更快地被Redis加载。
 
-![1585749241976](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585749241976.png)
+![1585749241976](D:\java-\java基础.assets\1585749241976.png)
 
 
 
@@ -6103,21 +6105,21 @@ eyerysec：可能丢失一秒内的数据。 write操作会触发延迟写机制
 
 ## 分布式锁的实现
 
-![1585843002651](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585843002651.png)
+![1585843002651](D:\java-\java基础.assets\1585843002651.png)
 
 这样写，第一个锁释放的可能是第二个锁。释放了不属于自己的锁。
 
-![1585843341916](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585843341916.png)
+![1585843341916](D:\java-\java基础.assets\1585843341916.png)
 
-![1585843331352](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585843331352.png)
+![1585843331352](D:\java-\java基础.assets\1585843331352.png)
 
-![1585844273289](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585844273289.png)
+![1585844273289](D:\java-\java基础.assets\1585844273289.png)
 
-![1586007897237](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1586007897237.png)
+![1586007897237](D:\java-\java基础.assets\1586007897237.png)
 
 ## 哨兵模式
 
-![1585845232687](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585845232687.png)
+![1585845232687](D:\java-\java基础.assets\1585845232687.png)
 
  哨兵模式是一种特殊的模式，首先Redis提供了哨兵的命令，哨兵是一个独立的进程，作为进程，它会独立运行。其原理是**哨兵通过发送命令，等待Redis服务器响应，从而监控运行的多个Redis实例。** 
 
@@ -6129,7 +6131,7 @@ eyerysec：可能丢失一秒内的数据。 write操作会触发延迟写机制
 
 用文字描述一下**故障切换（failover）**的过程。假设主服务器宕机，哨兵1先检测到这个结果，系统并不会马上进行failover过程，仅仅是哨兵1主观的认为主服务器不可用，这个现象成为**主观下线**。当后面的哨兵也检测到主服务器不可用，并且数量达到一定值时，那么哨兵之间就会进行一次投票，投票的结果由一个哨兵发起，进行failover操作。切换成功后，就会通过发布订阅模式，让各个哨兵把自己监控的从服务器实现切换主机，这个过程称为**客观下线**。这样对于客户端而言，一切都是透明的。
 
-![1585845316515](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585845316515.png)
+![1585845316515](D:\java-\java基础.assets\1585845316515.png)
 
 ## 缓存
 
@@ -6163,19 +6165,21 @@ eyerysec：可能丢失一秒内的数据。 write操作会触发延迟写机制
 
 ### JVM的位置
 
-![1583635522502](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583635522502.png)
+![1583635522502](D:\java-\java基础.assets\1583635522502.png)
 
 ### JVM的体系结构
 
-![1583635535763](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583635535763.png)
+![1583635535763](D:\java-\java基础.assets\1583635535763.png)
 
 
 
 ### 类加载器
 
-![1583635608383](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583635608383.png)
+![1583635608383](D:\java-\java基础.assets\1583635608383.png)
 
-![1583635633837](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583635633837.png)![1583635654059](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583635654059.png)
+![1583635633837](D:\java-\java基础.assets\1583635633837.png)
+
+![1583635654059](D:\java-\java基础.assets\1583635654059.png)
 
 #### 类加载器作用
 
@@ -6219,7 +6223,7 @@ null：java调用不到~ C\C++
 
 ### 沙箱安全机制
 
-![1583654781755](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583654781755.png)
+![1583654781755](D:\java-\java基础.assets\1583654781755.png)
 
 #### 包括：
 
@@ -6261,11 +6265,11 @@ JNI作用：扩展java的使用，融合不同的编程语言为java所用
 
 ### PC寄存器
 
-![1583656774434](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583656774434.png)
+![1583656774434](D:\java-\java基础.assets\1583656774434.png)
 
 ### 方法区
 
-![1583656791839](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583656791839.png)
+![1583656791839](D:\java-\java基础.assets\1583656791839.png)
 
 static final  Class  常量池在方法区
 
@@ -6295,17 +6299,17 @@ static final  Class  常量池在方法区
 
 
 
-![1583722177556](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583722177556.png)
+![1583722177556](D:\java-\java基础.assets\1583722177556.png)
 
-栈满了：StackOverflowError
+栈满了：StackOverflowError![1583722354752](D:\java-\java基础.assets\1583722354752.png)
 
 栈+堆+方法区：交互关系
 
-![1583722354752](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583722354752.png)
+
 
 ### 三种JVM
 
-![1583722767327](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583722767327.png)
+![1583722767327](D:\java-\java基础.assets\1583722767327.png)
 
 ### 堆
 
@@ -6325,7 +6329,7 @@ GC垃圾回收主要在伊甸园区和养老区~
 
 假设内存满了，OOM，堆内存不够
 
-![1583724002780](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583724002780.png)
+![1583724002780](D:\java-\java基础.assets\1583724002780.png)
 
 在JDK8以后，永久存储区改了名字（元空间）
 
@@ -6359,9 +6363,9 @@ jdk1.8之后：无永久代，
 
 元空间：逻辑上存在，物理上不存在。
 
-![1583746374952](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583746374952.png)
+![1583746374952](D:\java-\java基础.assets\1583746374952.png)
 
-![1583746489507](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583746489507.png)
+![1583746489507](D:\java-\java基础.assets\1583746489507.png)
 
 #### 堆内存调优
 
@@ -6411,11 +6415,17 @@ GC两种类型：轻GC，重GC（全局GC）
 
 ##### 引用计数法
 
-![1583761867858](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583761867858.png)
+![1583761867858](D:\java-\java基础.assets\1583761867858.png)
 
 ###### 可达性分析
 
-![1584285817757](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584285817757.png)![1584285859111](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584285859111.png)
+
+
+![1584285817757](D:\java-\java基础.assets\1584285817757.png)
+
+
+
+![1584285859111](D:\java-\java基础.assets\1584285859111.png)
 
 
 
@@ -6441,7 +6451,7 @@ GC两种类型：轻GC，重GC（全局GC）
 
 ##### 标记压缩清除法（老年代）
 
-![1583763449697](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583763449697.png)
+![1583763449697](D:\java-\java基础.assets\1583763449697.png)
 
 优点：不需要额外的空间！
 
@@ -6451,7 +6461,7 @@ GC两种类型：轻GC，重GC（全局GC）
 
 再优化
 
-![1583763621203](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1583763621203.png)
+![1583763621203](D:\java-\java基础.assets\1583763621203.png)
 
 
 
@@ -6533,9 +6543,9 @@ GC：分代收集算法
 
  G1会选择可能回收最多垃圾的Region进行回收。与此同时，G1回收器会维护一个空间Region的链表。每次回收之后的Region都会被加入到这个链表中。  在HotSpot的实现中，整个堆被划分成2048左右个Region 
 
-![1584286596656](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1584286596656.png)
 
 
+![1584286596656](D:\java-\java基础.assets\1584286596656.png)
 
 
 
@@ -6545,7 +6555,7 @@ GC：分代收集算法
 
 tomcat、jetty
 
-![1585916297171](C:\Users\56495\AppData\Roaming\Typora\typora-user-images\1585916297171.png)
+![1585916297171](D:\java-\java基础.assets\1585916297171.png)
 
 可以去掉web。xml
 
